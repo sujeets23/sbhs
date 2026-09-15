@@ -16,9 +16,27 @@ export default function AttendancePage() {
   const [statusMap, setStatusMap] = useState<Record<string, Status>>(() =>
     Object.fromEntries(sampleStudents.map((student) => [student.id, 'present'])),
   )
+  const [toast, setToast] = useState('')
 
   const handleSelect = (studentId: string, value: Status) => {
     setStatusMap((prev) => ({ ...prev, [studentId]: value }))
+    setToast('Attendance updated for selected student.')
+  }
+
+  const handleMarkAllPresent = () => {
+    const next: Record<string, Status> = Object.fromEntries(
+      sampleStudents.map((student) => [student.id, 'present' as Status]),
+    )
+    setStatusMap(next)
+    setToast('All students marked present.')
+  }
+
+  const handleSaveAttendance = () => {
+    const saved = Object.entries(statusMap)
+      .map(([id, status]) => ({ studentId: id, status }))
+      .filter((entry) => entry.status === 'absent' || entry.status === 'late' || entry.status === 'leave' || entry.status === 'present')
+
+    setToast(`Attendance saved for ${saved.length} students on ${selectedDate}.`)
   }
 
   const absentCount = useMemo(
@@ -64,7 +82,11 @@ export default function AttendancePage() {
             <CalendarDays size={16} />
             <span className="text-sm font-medium">Date: 15 Sep 2026</span>
           </div>
-          <button type="button" className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-medium text-slate-700">
+          <button
+            type="button"
+            onClick={handleMarkAllPresent}
+            className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-700 transition hover:bg-slate-100 sm:text-sm"
+          >
             Mark All Present
           </button>
         </div>
@@ -108,11 +130,21 @@ export default function AttendancePage() {
             <Check className="text-emerald-600" size={16} />
             <span>{absentCount} absent marked</span>
           </div>
-          <button className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-900 px-4 py-3 text-sm font-semibold text-white">
+          <button
+            type="button"
+            onClick={handleSaveAttendance}
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-900 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-800"
+          >
             <Save size={16} />
             Save Attendance
           </button>
         </div>
+
+        {toast && (
+          <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
+            {toast}
+          </div>
+        )}
       </div>
     </div>
   )
